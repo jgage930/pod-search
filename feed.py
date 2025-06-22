@@ -53,6 +53,8 @@ class FeedTable(DbTable):
 
 
 class FeedEntryTable(DbTable):
+    __name__ = 'feed_entries'
+
     title: str
     summary: str
     link: str
@@ -85,6 +87,10 @@ def rss_feed_pipeline(url: str, name: str):
 
     feed_id = FeedTable(**test_feed.model_dump()).insert(conn)
     logger.info(f'Inserted Feed {feed_id}')
+
+    for entry in entries:
+        entry_id = FeedEntryTable(**entry.model_dump(), feed_id=feed_id).insert(conn)
+        logger.info(f'Inserted Entry {entry_id}')
 
 
 if __name__ == '__main__':

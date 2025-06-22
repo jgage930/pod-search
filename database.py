@@ -36,7 +36,7 @@ class DbTable(BaseModel):
         cursor.execute(sql, values)
         conn.commit()
 
-        return cursor.lastrowid()
+        return cursor.lastrowid
 
     @classmethod
     def create_table(cls, conn: sqlite3.Connection, name: str):
