@@ -1,16 +1,20 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from prefect import flow
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+@flow(log_prints=True)
+def hello_flow(name: str = "world", goodbye: bool = False):
+    print(f"Hello {name} from prefect!")
+
+    if goodbye:
+        print(f"bye {name}")
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+if __name__ == "__main__":
+    # creates a deployment and starts a long-running
+    # process that listens for scheduled work
+    hello_flow.serve(
+        name="my-first-deployment",
+        tags=["onboarding"],
+        parameters={"name": "Felcia", "goodbye": True},
+        interval=60
+    )
