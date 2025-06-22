@@ -14,11 +14,30 @@ class DbTable(BaseModel):
     # Name of table in db
     __name__ = "Default"
 
-    id: int
+    id: int = None 
     last_updated: datetime = Field(default_factory=datetime.now)
 
     def insert(self, conn: sqlite3.Connection) -> int:
-        pass
+        # Exclude 'id' if it's None (assuming auto-incremented)
+        data = self.model_dump(exclude_unset=True)
+        if data.get("id") is None:
+            data.pop("id", None)
+
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['?'] * len(data))
+        values = list(data.values())
+
+        sql = f"""
+            INSERT INTO {self.__name__}
+            ({columns})
+            VALUES ({placeholders})
+        """
+
+        cursor = conn.cursor()
+        cursor.execute(sql, values)
+        conn.commit()
+
+        return cursor.lastrowid()
 
     @classmethod
     def create_table(cls, conn: sqlite3.Connection):

@@ -71,8 +71,9 @@ def setup_db():
     FeedEntryTable.create_table(conn)
 
 
-@flow(log_prints=True)
+@flow()
 def rss_feed_pipeline(url: str, name: str):
+    logger = get_run_logger()
     setup_db()
 
     test_feed = Feed(
@@ -81,7 +82,7 @@ def rss_feed_pipeline(url: str, name: str):
     )
 
     entries = parse_feed(test_feed.url)
-    print(f'Read {len(entries)} entries from rss feed.')
+    logger.info(f'Read {len(entries)} entries from rss feed.')
 
 
 
