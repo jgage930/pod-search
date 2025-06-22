@@ -6,6 +6,7 @@ import json
 from typing import Any, Optional
 
 from database import DbTable, db_connect
+import yaml
 
 """
 1.  Get feed.
@@ -93,7 +94,24 @@ def rss_feed_pipeline(url: str, name: str):
         logger.info(f'Inserted Entry {entry_id}')
 
 
+def deploy_podcasts():
+    with open('deployments/podcasts.yaml', 'r') as f:
+        config = yaml.load(f, Loader=yaml.SafeLoader)
+
+    for deployment in config:
+        print(deployment)
+        rss_feed_pipeline.serve(
+            name=deployment['name'],
+            tags=["rss", 'podcast'],
+            parameters={"url": deployment['url'], "name": deployment['name']},
+            cron=deployment['cron']
+        )
+
+        rss_feed_pipeline(deployment['url'], deployment['name'])
+
+
 if __name__ == '__main__':
+    deploy_podcasts()
     # rss_feed_pipeline.serve(
     #     name="deploy-rss-pipeline",
     #     tags=["rss", "news"],
@@ -106,4 +124,4 @@ if __name__ == '__main__':
     #     parameters={'name': 'Lore Rss Feed', 'url': "https://feeds.libsyn.com/65267/rss"},
     # )
 
-    rss_feed_pipeline("https://feeds.libsyn.com/65267/rss", 'Lore Rss Feed')
+    # rss_feed_pipeline("https://feeds.libsyn.com/65267/rss", 'Lore Rss Feed')
