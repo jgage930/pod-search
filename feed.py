@@ -53,8 +53,6 @@ class FeedTable(DbTable):
 
 
 class FeedEntryTable(DbTable):
-    __name__ = 'feeds'
-
     title: str
     summary: str
     link: str
@@ -67,14 +65,15 @@ def setup_db():
     logger = get_run_logger()
     conn = db_connect()
 
-    FeedTable.create_table(conn)
-    FeedEntryTable.create_table(conn)
+    FeedTable.create_table(conn, 'feeds')
+    FeedEntryTable.create_table(conn, 'feed_entries')
 
 
 @flow()
 def rss_feed_pipeline(url: str, name: str):
     logger = get_run_logger()
     setup_db()
+    conn = db_connect()
 
     test_feed = Feed(
         name=name,
@@ -84,6 +83,8 @@ def rss_feed_pipeline(url: str, name: str):
     entries = parse_feed(test_feed.url)
     logger.info(f'Read {len(entries)} entries from rss feed.')
 
+    feed_id = FeedTable(**test_feed.model_dump()).insert(conn)
+    logger.info(f'Inserted Feed {feed_id}')
 
 
 if __name__ == '__main__':

@@ -12,7 +12,6 @@ def db_connect() -> sqlite3.Connection:
 
 class DbTable(BaseModel):
     # Name of table in db
-    __name__ = "Default"
 
     id: int = None 
     last_updated: datetime = Field(default_factory=datetime.now)
@@ -40,7 +39,7 @@ class DbTable(BaseModel):
         return cursor.lastrowid()
 
     @classmethod
-    def create_table(cls, conn: sqlite3.Connection):
+    def create_table(cls, conn: sqlite3.Connection, name: str):
         sql_types = {
             str: 'TEXT',
             int: 'INTEGER',
@@ -55,7 +54,7 @@ class DbTable(BaseModel):
         columns_sql = ',\n'.join(columns).removesuffix(',\n')
 
         sql = f"""
-            CREATE TABLE IF NOT EXISTS {cls.__name__} (
+            CREATE TABLE IF NOT EXISTS {name} (
             {columns_sql}
             )
         """
