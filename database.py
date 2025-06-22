@@ -6,7 +6,7 @@ from datetime import datetime
 
 @task 
 def db_connect() -> sqlite3.Connection:
-    return sqlite3.open('database.db')    
+    return sqlite3.connect('database.db')    
 
 
 class DbTable(BaseModel):
@@ -23,13 +23,13 @@ class DbTable(BaseModel):
     def create_table(cls, conn: sqlite3.Connection):
         sql_types = {
             str: 'TEXT',
-            int: 'INTEGER'
+            int: 'INTEGER',
+            datetime: 'TEXT'
         }
 
         columns = [
             'id INTEGER PRIMARY KEY AUTOINCREMENT',
-            'last_updated TEXT',
-            *[f'{name} {sql_types[type_.annotation]}' for name, type_ in cls.model_fields.items()]
+            *[f'{name} {sql_types[type_.annotation]}' for name, type_ in cls.model_fields.items() if name != 'id']
         ]
         columns_sql = ',\n'.join(columns).removesuffix(',\n')
 

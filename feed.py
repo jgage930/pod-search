@@ -52,7 +52,7 @@ class FeedTable(DbTable):
     url: str
 
 
-class FeedEntry(DbTable):
+class FeedEntryTable(DbTable):
     __name__ = 'feeds'
 
     title: str
@@ -65,16 +65,19 @@ class FeedEntry(DbTable):
 @task(log_prints=True)
 def setup_db():
     logger = get_run_logger()
+    conn = db_connect()
 
-    FeedTable.create_table()
-    FeedEntry.create_table()
+    FeedTable.create_table(conn)
+    FeedEntryTable.create_table(conn)
 
 
 @flow()
 def rss_feed_pipeline():
+    setup_db()
+
     test_feed = Feed(
         name="NPR News",
-        url="https://feeds.npr.org/1001/rss.xml"
+        url="https://feeds.npr.org/1051/rss.xml"
     )
 
     entries = parse_feed(test_feed.url)
@@ -82,8 +85,8 @@ def rss_feed_pipeline():
 
 
 if __name__ == '__main__':
-    rss_feed_pipeline.serve(
-        name="deploy-rss-pipeline",
-        tags=["rss", "news"],
-        interval=60
-    )
+    # rss_feed_pipeline.serve(
+    #     name="deploy-rss-pipeline",
+    #     tags=["rss", "news"],
+    #     interval=3
+    # )
