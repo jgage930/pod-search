@@ -3,7 +3,7 @@ import feedparser
 from prefect import flow, get_run_logger, task
 from datetime import datetime
 import json
-from typing import Any
+from typing import Any, Optional
 
 from database import DbTable, db_connect
 
@@ -24,7 +24,7 @@ class FeedEntry(BaseModel):
     title: str
     summary: str
     link: str
-    author: str
+    author: Optional[str] = ''
 
 
 @task
@@ -58,7 +58,7 @@ class FeedEntryTable(DbTable):
     title: str
     summary: str
     link: str
-    author: str
+    author: Optional[str] = ''
     feed_id: int
 
 
@@ -71,17 +71,18 @@ def setup_db():
     FeedEntryTable.create_table(conn)
 
 
-@flow()
-def rss_feed_pipeline():
+@flow(log_prints=True)
+def rss_feed_pipeline(url: str, name: str):
     setup_db()
 
     test_feed = Feed(
-        name="NPR News",
-        url="https://feeds.npr.org/1051/rss.xml"
+        name=name,
+        url=url
     )
 
     entries = parse_feed(test_feed.url)
-    print(entries)
+    print(f'Read {len(entries)} entries from rss feed.')
+
 
 
 if __name__ == '__main__':
@@ -90,3 +91,11 @@ if __name__ == '__main__':
     #     tags=["rss", "news"],
     #     interval=3
     # )
+    # rss_feed_pipeline.serve(
+    #     name="Lore Rss Feed",
+    #     tags=["rss", "podcasts"],
+    #     interval=3,
+    #     parameters={'name': 'Lore Rss Feed', 'url': "https://feeds.libsyn.com/65267/rss"},
+    # )
+
+    rss_feed_pipeline("https://feeds.libsyn.com/65267/rss", 'Lore Rss Feed')

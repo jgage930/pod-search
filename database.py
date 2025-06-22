@@ -2,6 +2,7 @@ import sqlite3
 from prefect import task
 from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Optional
 
 
 @task 
@@ -24,7 +25,8 @@ class DbTable(BaseModel):
         sql_types = {
             str: 'TEXT',
             int: 'INTEGER',
-            datetime: 'TEXT'
+            datetime: 'TEXT',
+            Optional[str]: 'Text'
         }
 
         columns = [
