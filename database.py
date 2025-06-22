@@ -29,7 +29,7 @@ class DbTable(BaseModel):
         columns = [
             'id INTEGER PRIMARY KEY AUTOINCREMENT',
             'last_updated TEXT',
-            f'{name} {sql_types[type_.annotation]}' for name, type_ in cls.model_fields.items()
+            *[f'{name} {sql_types[type_.annotation]}' for name, type_ in cls.model_fields.items()]
         ]
         columns_sql = ',\n'.join(columns).removesuffix(',\n')
 

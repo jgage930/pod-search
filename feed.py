@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 from typing import Any
 
+from database import DbTable, db_connect
 
 """
 1.  Get feed.
@@ -44,7 +45,32 @@ def parse_feed(url: str) -> list[FeedEntry]:
     return entries
 
 
-@flow
+class FeedTable(DbTable):
+    __name__ = 'feeds'
+
+    name: str
+    url: str
+
+
+class FeedEntry(DbTable):
+    __name__ = 'feeds'
+
+    title: str
+    summary: str
+    link: str
+    author: str
+    feed_id: int
+
+
+@task(log_prints=True)
+def setup_db():
+    logger = get_run_logger()
+
+    FeedTable.create_table()
+    FeedEntry.create_table()
+
+
+@flow()
 def rss_feed_pipeline():
     test_feed = Feed(
         name="NPR News",
