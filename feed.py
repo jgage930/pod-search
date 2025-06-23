@@ -94,34 +94,21 @@ def rss_feed_pipeline(url: str, name: str):
         logger.info(f'Inserted Entry {entry_id}')
 
 
-def deploy_podcasts():
+@flow
+def podcasts_pipeline():
+    logger = get_run_logger()
+
     with open('deployments/podcasts.yaml', 'r') as f:
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
-    for deployment in config:
-        print(deployment)
-        rss_feed_pipeline.serve(
-            name=deployment['name'],
-            tags=["rss", 'podcast'],
-            parameters={"url": deployment['url'], "name": deployment['name']},
-            cron=deployment['cron']
-        )
-
-        rss_feed_pipeline(deployment['url'], deployment['name'])
+    for podcast in config:
+        logger.info(f'Pulling podcasts for {podcast['Name']}')
+        rss_feed_pipeline(podcast['url'], podcast['name'])
 
 
 if __name__ == '__main__':
-    deploy_podcasts()
-    # rss_feed_pipeline.serve(
-    #     name="deploy-rss-pipeline",
-    #     tags=["rss", "news"],
-    #     interval=3
-    # )
-    # rss_feed_pipeline.serve(
-    #     name="Lore Rss Feed",
-    #     tags=["rss", "podcasts"],
-    #     interval=3,
-    #     parameters={'name': 'Lore Rss Feed', 'url': "https://feeds.libsyn.com/65267/rss"},
-    # )
-
-    # rss_feed_pipeline("https://feeds.libsyn.com/65267/rss", 'Lore Rss Feed')
+    podcasts_pipeline.serve(
+        name='Deploy-Podcasts',
+        tags=["rss", 'podcast'],
+        cron="0 * * * *"
+    )
