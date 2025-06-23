@@ -102,7 +102,7 @@ def podcasts_pipeline():
         config = yaml.load(f, Loader=yaml.SafeLoader)
 
     for podcast in config:
-        logger.info(f'Pulling podcasts for {podcast['Name']}')
+        logger.info(f'Pulling podcasts for {podcast['name']}')
         rss_feed_pipeline(podcast['url'], podcast['name'])
 
 

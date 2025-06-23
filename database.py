@@ -3,6 +3,7 @@ from prefect import task
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
+from typing_extensions import Self
 
 
 @task 
@@ -37,6 +38,15 @@ class DbTable(BaseModel):
         conn.commit()
 
         return cursor.lastrowid
+
+    @classmethod
+    def select(self, conn: sqlite3.Connection, attrs: dict) -> Self:
+        table_name = self.__name__
+
+        sql = f"""
+            SELECT * 
+        """
+
 
     @classmethod
     def create_table(cls, conn: sqlite3.Connection, name: str):
