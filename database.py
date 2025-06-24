@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, Type, TypeVar
 from typing_extensions import Self
+from pypika import Query, Table
 
 
 @task 
@@ -16,7 +17,7 @@ class DbTable(BaseModel):
     __table_name__ = 'Default'
 
     id: int = None 
-    last_updated: datetime = Field(default_factory=datetime.now)
+    #last_updated: datetime = Field(default_factory=datetime.now)
 
     def insert(self, conn: sqlite3.Connection) -> int:
         # Exclude 'id' if it's None (assuming auto-incremented)
@@ -95,7 +96,6 @@ def create_table(conn: sqlite3.Connection, table: Type[DbTable]):
         )
     """
 
-    print(sql)
     conn.execute(sql)
     conn.commit()
 
@@ -127,8 +127,21 @@ def bulk_insert(conn: sqlite3.Connection, rows: list[DbTable]):
         insert(conn, row)
 
 
+def dict_factory(cursor, row):
+    colnames = [c[0] for c in cursor.description]
+    return dict(zip(colnames, row))
+
 T = TypeVar('T')
-def select(conn: sqlite3.Connection, table: Type[T], attrs: dict) -> list[T]:
-    pass
+def select(conn: sqlite3.Connection, model: Type[T], attrs: dict) -> list[T]:
+    table = Table(model.__table_name__)
+    q = Query.from_(table).select('*')
 
+    for col, val in attrs.items():
+        q = q.where(getattr(table, col) == val)
 
+    conn.row_factory = dict_factory
+    cursor = conn.cursor()
+    sql = str(q)
+
+    cursor.execute(sql)
+    return [model(**row) for row in cursor.fetchall()]

@@ -33,10 +33,15 @@ def test_bulk_insert(db_conn):
         UserTable(name="Test User", password="supersecure123"),
         UserTable(name="Test User 1", password="supersecure123"),
         UserTable(name="Test User 2", password="supersecure123"),
-        UserTable(name="Test User 3", password="supersecure123"),
+        UserTable(name="Test User 3", password="test123"),
+        UserTable(name="Test User 4", password="123"),
     ]
     db.bulk_insert(db_conn, test_users)
 
 
+def test_select(db_conn):
+    test_user = UserTable(name="Test User 4", password="123")
+    id = db.insert(db_conn, test_user)
 
-
+    rows = db.select(db_conn, UserTable, {'name': 'Test User 4'})
+    assert rows == [UserTable(id=1, name="Test User 4", password="123")]
