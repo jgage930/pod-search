@@ -27,3 +27,16 @@ def test_insert(db_conn):
     test_id = db.insert(db_conn, test_user)
     assert test_id == 1
 
+
+def test_bulk_insert(db_conn):
+    test_users = [
+        UserTable(name="Test User", password="supersecure123"),
+        UserTable(name="Test User 1", password="supersecure123"),
+        UserTable(name="Test User 2", password="supersecure123"),
+        UserTable(name="Test User 3", password="supersecure123"),
+    ]
+    db.bulk_insert(db_conn, test_users)
+
+
+
+

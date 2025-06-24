@@ -123,7 +123,9 @@ def insert(conn: sqlite3.Connection, row: DbTable) -> int:
 
 
 def bulk_insert(conn: sqlite3.Connection, rows: list[DbTable]):
-    pass
+    for row in rows:
+        insert(conn, row)
+
 
 T = TypeVar('T')
 def select(conn: sqlite3.Connection, table: Type[T], attrs: dict) -> list[T]:
