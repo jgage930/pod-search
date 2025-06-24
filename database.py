@@ -76,7 +76,28 @@ class DbTable(BaseModel):
 
 
 def create_table(conn: sqlite3.Connection, table: Type[DbTable]):
-    pass
+    sql_types = {
+        str: 'TEXT',
+        int: 'INTEGER',
+        datetime: 'TEXT',
+        Optional[str]: 'Text'
+    }
+
+    columns = [
+        'id INTEGER PRIMARY KEY AUTOINCREMENT',
+        *[f'{name} {sql_types[type_.annotation]}' for name, type_ in table.model_fields.items() if name != 'id']
+    ]
+    columns_sql = ',\n'.join(columns).removesuffix(',\n')
+
+    sql = f"""
+        CREATE TABLE IF NOT EXISTS {table.__table_name__} (
+        {columns_sql}
+        )
+    """
+
+    print(sql)
+    conn.execute(sql)
+    conn.commit()
 
 
 def insert(conn: sqlite3.Connection, row: DbTable) -> int:
