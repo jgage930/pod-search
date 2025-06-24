@@ -131,6 +131,7 @@ def dict_factory(cursor, row):
     colnames = [c[0] for c in cursor.description]
     return dict(zip(colnames, row))
 
+
 T = TypeVar('T')
 def select(conn: sqlite3.Connection, model: Type[T], attrs: dict) -> list[T]:
     table = Table(model.__table_name__)
