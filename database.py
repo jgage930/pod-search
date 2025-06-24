@@ -2,7 +2,7 @@ import sqlite3
 from prefect import task
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Type, TypeVar
 from typing_extensions import Self
 
 
@@ -13,6 +13,7 @@ def db_connect() -> sqlite3.Connection:
 
 class DbTable(BaseModel):
     # Name of table in db
+    __table_name__ = 'Default'
 
     id: int = None 
     last_updated: datetime = Field(default_factory=datetime.now)
@@ -74,6 +75,19 @@ class DbTable(BaseModel):
         conn.commit()
 
 
+def create_table(conn: sqlite3.Connection, table: Type[DbTable]):
+    pass
 
+
+def insert(conn: sqlite3.Connection, row: DbTable) -> int:
+    pass
+
+
+def bulk_insert(conn: sqlite3.Connection, rows: list[DbTable]):
+    pass
+
+T = TypeVar('T')
+def select(conn: sqlite3.Connection, table: Type[T], attrs: dict) -> list[T]:
+    pass
 
 
