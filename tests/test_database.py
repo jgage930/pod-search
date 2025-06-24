@@ -44,4 +44,4 @@ def test_select(db_conn):
     id = db.insert(db_conn, test_user)
 
     rows = db.select(db_conn, UserTable, {'name': 'Test User 4'})
-    assert rows == [UserTable(id=1, name="Test User 4", password="123")]
+    assert rows == [UserTable(id=id, name="Test User 4", password="123")]
