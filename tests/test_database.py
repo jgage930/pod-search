@@ -1,11 +1,11 @@
 import pytest
 import sqlite3
-from database import DbTable
+import database as db
 import os
 
 
-class UserTable(DbTable):
-    __name__ = "users"
+class UserTable(db.DbTable):
+    __table_name__ = "users"
 
     name: str
     password: str
@@ -15,7 +15,7 @@ class UserTable(DbTable):
 def db_conn():
     db_path = 'tests/test_data.db'
     conn = sqlite3.connect(db_path) 
-    UserTable.create_table(conn, 'users')
+    db.create_table(conn, UserTable)
 
     yield conn
 
@@ -23,6 +23,7 @@ def db_conn():
 
 
 def test_insert(db_conn):
-    test_user_id = UserTable(name="Test User", password="supersecure123").insert(db_conn)
-    assert test_user_id == 1
+    test_user = UserTable(name="Test User", password="supersecure123")
+    test_id = db.insert(db_conn, test_user)
+    assert test_id == 1
 

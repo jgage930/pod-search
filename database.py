@@ -101,7 +101,25 @@ def create_table(conn: sqlite3.Connection, table: Type[DbTable]):
 
 
 def insert(conn: sqlite3.Connection, row: DbTable) -> int:
-    pass
+    data = row.model_dump(exclude_unset=True)
+    if data.get("id") is None:
+        data.pop("id", None)
+
+    columns = ', '.join(data.keys())
+    placeholders = ', '.join(['?'] * len(data))
+    values = list(data.values())
+
+    sql = f"""
+        INSERT INTO {row.__table_name__}
+        ({columns})
+        VALUES ({placeholders})
+    """
+
+    cursor = conn.cursor()
+    cursor.execute(sql, values)
+    conn.commit()
+
+    return cursor.lastrowid
 
 
 def bulk_insert(conn: sqlite3.Connection, rows: list[DbTable]):
