@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ValidationError, model_validator
 import feedparser
-from prefect import flow, get_run_logger, task
+from prefect import flow, get_run_logger, task, serve
 from datetime import datetime
 import json
 from typing import Any, Optional
@@ -111,9 +111,21 @@ def podcasts_pipeline():
 
 
 if __name__ == '__main__':
-    # podcasts_pipeline.serve(
-    #     name='Deploy-Podcasts',
-    #     tags=["rss", 'podcast'],
-    #     cron="0 * * * *"
-    # )
-    rss_feed_pipeline('https://feeds.libsyn.com/65267/rss', 'Lore')
+    with open('deployments/podcasts.yaml', 'r') as f:
+        feeds = yaml.load(f, Loader=yaml.SafeLoader)
+
+    deployments = []
+    for feed in feeds:
+        name = feed['name'].replace(' ', '-').lower() + '-deploy'
+        deployment = rss_feed_pipeline.to_deployment(
+            name=name,
+            tags=['rss', 'podcast'],
+            parameters={'url': feed['url'], 'name': feed['name']},
+            cron='0 * * * *',
+        )
+        deployments.append(deployment)
+
+        # Run each flow once on start
+        rss_feed_pipeline(feed['url'], feed['name'])
+
+    serve(*deployments)
