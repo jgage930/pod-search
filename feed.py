@@ -66,7 +66,6 @@ class FeedEntryTable(db.DbTable):
 
 @task(log_prints=True)
 def setup_db():
-    logger = get_run_logger()
     conn = db.db_connect()
 
     FeedTable.create_table(conn, 'feeds')
@@ -85,16 +84,18 @@ def rss_feed_pipeline(url: str, name: str):
         logger.info(f'Feed url found in db with name {feed_in_db[0].name}.')
         feed_id = feed_in_db[0].id
     else:
+        logger.info('Adding feed to db...')
         feed_id = db.insert(conn, FeedTable(name=name, url=url))
 
+    logger.info('Parsing rss feed...')
     entries = parse_feed(url)
     logger.info(f'Read {len(entries)} entries from rss feed.')
 
-    
+    logger.info('Dropping entries from db...')
+    db.delete(conn, FeedEntryTable, {'feed_id': feed_id})
 
-    for entry in entries:
-        entry_id = FeedEntryTable(**entry.model_dump(), feed_id=feed_id).insert(conn)
-        logger.info(f'Inserted Entry {entry_id}')
+    entries = [FeedEntryTable(**entry.model_dump(), feed_id=feed_id) for entry in entries]
+    db.bulk_insert(conn, entries)
 
 
 @flow
@@ -110,8 +111,9 @@ def podcasts_pipeline():
 
 
 if __name__ == '__main__':
-    podcasts_pipeline.serve(
-        name='Deploy-Podcasts',
-        tags=["rss", 'podcast'],
-        cron="0 * * * *"
-    )
+    # podcasts_pipeline.serve(
+    #     name='Deploy-Podcasts',
+    #     tags=["rss", 'podcast'],
+    #     cron="0 * * * *"
+    # )
+    rss_feed_pipeline('https://feeds.libsyn.com/65267/rss', 'Lore')
