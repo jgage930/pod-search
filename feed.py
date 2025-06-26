@@ -1,25 +1,9 @@
-from pydantic import BaseModel, ValidationError, model_validator
+from pydantic import BaseModel, ValidationError
 import feedparser
 from prefect import flow, get_run_logger, task, serve
-from datetime import datetime
-import json
-from typing import Any, Optional
-
-# from database import DbTable, db_connect
+from typing import Optional
 import database as db
 import yaml
-
-"""
-1.  Get feed.
-2.  Store feed in db.
-3.  Parse entries from feed.
-
-"""
-
-
-class Feed(BaseModel):
-    name: str
-    url: str
 
 
 class FeedEntry(BaseModel):
