@@ -54,4 +54,3 @@ def test_delete(db_conn):
     db.delete(db_conn, UserTable, {'name': 'Test User 4'})
     users = db.select(db_conn, UserTable, {'name': 'Test User 4'})
     assert users == []
-
