@@ -146,3 +146,16 @@ def select(conn: sqlite3.Connection, model: Type[T], attrs: dict) -> list[T]:
 
     cursor.execute(sql)
     return [model(**row) for row in cursor.fetchall()]
+
+
+def delete(conn: sqlite3.Connection, model: Type[DbTable], attrs: dict):
+    table = Table(model.__table_name__)
+    q = Query.from_(table).delete()
+
+    for col, val in attrs.items():
+        q = q.where(getattr(table, col) == val)
+
+    cursor = conn.cursor()
+    cursor.execute(str(q))
+    conn.commit()
+
