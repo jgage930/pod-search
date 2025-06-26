@@ -5,7 +5,8 @@ from datetime import datetime
 import json
 from typing import Any, Optional
 
-from database import DbTable, db_connect
+# from database import DbTable, db_connect
+import database as db
 import yaml
 
 """
@@ -46,15 +47,15 @@ def parse_feed(url: str) -> list[FeedEntry]:
     return entries
 
 
-class FeedTable(DbTable):
-    __name__ = 'feeds'
+class FeedTable(db.DbTable):
+    __table_name__ = 'feeds'
 
     name: str
     url: str
 
 
-class FeedEntryTable(DbTable):
-    __name__ = 'feed_entries'
+class FeedEntryTable(db.DbTable):
+    __table_name__ = 'feed_entries'
 
     title: str
     summary: str
@@ -66,7 +67,7 @@ class FeedEntryTable(DbTable):
 @task(log_prints=True)
 def setup_db():
     logger = get_run_logger()
-    conn = db_connect()
+    conn = db.db_connect()
 
     FeedTable.create_table(conn, 'feeds')
     FeedEntryTable.create_table(conn, 'feed_entries')
@@ -76,18 +77,20 @@ def setup_db():
 def rss_feed_pipeline(url: str, name: str):
     logger = get_run_logger()
     setup_db()
-    conn = db_connect()
+    conn = db.db_connect()
+    
+    feed_in_db = db.select(conn, FeedTable, {'url': url})
+    feed_id = 0
+    if feed_in_db:
+        logger.info(f'Feed url found in db with name {feed_in_db[0].name}.')
+        feed_id = feed_in_db[0].id
+    else:
+        feed_id = db.insert(conn, FeedTable(name=name, url=url))
 
-    test_feed = Feed(
-        name=name,
-        url=url
-    )
-
-    entries = parse_feed(test_feed.url)
+    entries = parse_feed(url)
     logger.info(f'Read {len(entries)} entries from rss feed.')
 
-    feed_id = FeedTable(**test_feed.model_dump()).insert(conn)
-    logger.info(f'Inserted Feed {feed_id}')
+    
 
     for entry in entries:
         entry_id = FeedEntryTable(**entry.model_dump(), feed_id=feed_id).insert(conn)
