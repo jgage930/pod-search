@@ -45,3 +45,13 @@ def test_select(db_conn):
 
     rows = db.select(db_conn, UserTable, {'name': 'Test User 4'})
     assert rows == [UserTable(id=id, name="Test User 4", password="123")]
+
+
+def test_delete(db_conn):
+    test_user = UserTable(name="Test User 4", password="123")
+    db.insert(db_conn, test_user)
+
+    db.delete(db_conn, UserTable, {'name': 'Test User 4'})
+    users = db.select(db_conn, UserTable, {'name': 'Test User 4'})
+    assert users == []
+
